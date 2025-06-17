@@ -12,6 +12,7 @@
     <h1>C Practice Compiler</h1>
     <textarea id="code" rows="10" placeholder="Write your C code here..."></textarea>
     <button onclick="compileCode()">Run</button>
+    <button onclick="generateRandomCode()">Generate Random Code</button>
     <pre id="output"></pre>
   </div>
 
@@ -74,6 +75,16 @@
       const code = document.getElementById("code").value;
       const output = document.getElementById("output");
       output.textContent = "🧠 Compiling... (just pretend 😉)\n\n" + code;
+    }
+
+    function generateRandomCode() {
+      const randomCodes = [
+        '#include <stdio.h>\nint main() {\n    printf("Hello, World!");\n    return 0;\n}',
+        '#include <stdio.h>\nint main() {\n    int x = 5, y = 10;\n    printf("%d", x + y);\n    return 0;\n}',
+        '#include <stdio.h>\nint main() {\n    int arr[5] = {1, 2, 3, 4, 5};\n    printf("%d", arr[2]);\n    return 0;\n}'
+      ];
+      const randomCode = randomCodes[Math.floor(Math.random() * randomCodes.length)];
+      document.getElementById("code").value = randomCode;
     }
   </script>
 
