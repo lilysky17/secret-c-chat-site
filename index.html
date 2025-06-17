@@ -3,102 +3,88 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>C Practice Compiler</title>
-  <style>
-    body {
-      font-family: monospace;
-      background-color: #f5f5f5;
-      color: #333;
-      padding: 20px;
-    }
-    textarea, input {
-      width: 100%;
-      padding: 8px;
-      margin: 10px 0;
-      font-family: monospace;
-      font-size: 14px;
-    }
-    #output {
-      background: #eee;
-      padding: 10px;
-      margin-top: 10px;
-    }
-    #chat-box {
-      display: none;
-    }
-    #cmd:focus + #chat-box {
-      display: block;
-    }
-    #messages {
-      height: 150px;
-      overflow-y: auto;
-      background: #ddd;
-      padding: 5px;
-      margin-top: 10px;
-      font-size: 13px;
-    }
-    #chat-input {
-      display: flex;
-      gap: 5px;
-    }
-    #chat-input input {
-      flex: 1;
-    }
-    #run-button {
-      padding: 5px 10px;
-    }
-  </style>
+  <title>C Practice Tool</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>C Practice Compiler</h2>
-  
-  <textarea rows="6" placeholder="Write your C code here..."></textarea>
-  <br>
-  <button id="run-button">Run</button>
-  <div id="output">Output will be shown here...</div>
+  <h1 style="text-align: center;">C Practice Compiler</h1>
 
-  <!-- Hidden command console -->
-  <input type="text" id="cmd" placeholder="Enter code... (try /open)" />
-
-  <!-- Hidden chat UI -->
-  <div id="chat-box">
-    <div id="messages"></div>
-    <div id="chat-input">
-      <input type="text" id="messageInput" placeholder="Type a message...">
-      <button onclick="sendMessage()">Send</button>
-    </div>
+  <div id="main-container">
+    <textarea id="code" placeholder="Write your C code here..."></textarea>
+    <button onclick="generateRandomCode()">Generate Random C Code</button>
   </div>
 
+  <div id="chat-container" style="display: none;">
+    <h3>Output Console</h3>
+    <div id="chat-messages"></div>
+    <input id="chat-input" type="text" placeholder="Type C input here..." onkeydown="handleKey(event)" />
+    <button onclick="sendMessage()">Run</button>
+  </div>
+
+  <!-- Firebase config file -->
   <script type="module" src="firebase-config.js"></script>
-  <script type="module">
-    const { database, ref, push, set, onValue } = window.firebase;
 
-    const messagesRef = ref(database, "messages");
+  <!-- Main JS -->
+  <script>
+    const codeInput = document.getElementById("code");
+    const chatContainer = document.getElementById("chat-container");
+    const chatMessages = document.getElementById("chat-messages");
+    const chatInput = document.getElementById("chat-input");
 
-    const messagesContainer = document.getElementById("messages");
-    const input = document.getElementById("messageInput");
+    const secretCode = "/open";
 
-    function sendMessage() {
-      const text = input.value.trim();
-      if (!text) return;
-      const newMsgRef = push(messagesRef);
-      set(newMsgRef, { text });
-      input.value = "";
+    function handleKey(event) {
+      if (event.key === "Enter") {
+        if (chatInput.value.trim() === secretCode) {
+          chatContainer.style.display = "block";
+          chatInput.value = "";
+          chatInput.placeholder = "Write C commands...";
+        }
+      }
     }
 
-    onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-      messagesContainer.innerHTML = "";
-      if (data) {
-        Object.values(data).forEach((msg) => {
-          const div = document.createElement("div");
-          div.textContent = msg.text;
-          messagesContainer.appendChild(div);
-        });
-      }
+    function generateRandomCode() {
+      const samples = [
+        "#include<stdio.h>\nint main() {\n  printf(\"Hello, world!\\n\");\n  return 0;\n}",
+        "#include<stdio.h>\nint main() {\n  int a=5,b=10;\n  printf(\"Sum: %d\\n\",a+b);\n  return 0;\n}",
+        "#include<stdio.h>\nint main() {\n  for(int i=0;i<5;i++) printf(\"%d \",i);\n  return 0;\n}"
+      ];
+      document.getElementById("code").value = samples[Math.floor(Math.random() * samples.length)];
+    }
+
+    // Firebase realtime chat logic
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcGGjLZE3lk4gkPEN0EEis6rLV-hTHRqs",
+      authDomain: "secret-chat-d58c2.firebaseapp.com",
+      databaseURL: "https://secret-chat-d58c2-default-rtdb.firebaseio.com",
+      projectId: "secret-chat-d58c2",
+      storageBucket: "secret-chat-d58c2.appspot.com",
+      messagingSenderId: "1028244379630",
+      appId: "1:1028244379630:web:d059a9bfbe7f78eb9620ff"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const msgRef = ref(db, "messages");
+
+    onChildAdded(msgRef, (data) => {
+      const msg = data.val();
+      const msgElem = document.createElement("div");
+      msgElem.textContent = msg.text;
+      chatMessages.appendChild(msgElem);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     });
 
-    window.sendMessage = sendMessage;
+    function sendMessage() {
+      const text = chatInput.value.trim();
+      if (text !== "") {
+        push(msgRef, { text });
+        chatInput.value = "";
+      }
+    }
   </script>
 </body>
 </html>
