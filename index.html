@@ -3,90 +3,102 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>C Programming Practice</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>C Practice Compiler</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #f5f5f5;
+      color: #333;
+      padding: 20px;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    #output {
+      background: #eee;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    #chat-box {
+      display: none;
+    }
+    #cmd:focus + #chat-box {
+      display: block;
+    }
+    #messages {
+      height: 150px;
+      overflow-y: auto;
+      background: #ddd;
+      padding: 5px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    #chat-input {
+      display: flex;
+      gap: 5px;
+    }
+    #chat-input input {
+      flex: 1;
+    }
+    #run-button {
+      padding: 5px 10px;
+    }
+  </style>
 </head>
 <body>
+  <h2>C Practice Compiler</h2>
+  
+  <textarea rows="6" placeholder="Write your C code here..."></textarea>
+  <br>
+  <button id="run-button">Run</button>
+  <div id="output">Output will be shown here...</div>
 
-  <div class="container">
-    <h1>C Practice Compiler</h1>
-    <textarea id="code" rows="10" placeholder="Write your C code here..."></textarea>
-    <button onclick="compileCode()">Run</button>
-    <button onclick="generateRandomCode()">Generate Random Code</button>
-    <pre id="output"></pre>
+  <!-- Hidden command console -->
+  <input type="text" id="cmd" placeholder="Enter code... (try /open)" />
+
+  <!-- Hidden chat UI -->
+  <div id="chat-box">
+    <div id="messages"></div>
+    <div id="chat-input">
+      <input type="text" id="messageInput" placeholder="Type a message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
   </div>
 
-  <!-- Secret Chat Trigger -->
-  <input id="chatCommand" type="text" placeholder="Enter code... (try //open)" onkeyup="checkCommand(this)" />
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module">
+    const { database, ref, push, set, onValue } = window.firebase;
 
-  <!-- Hidden Chat Box -->
-  <div id="chatBox" style="display:none; padding: 10px; border: 1px solid #ccc;">
-    <h3>Secret Chat 💗</h3>
-    <div id="messages" style="height: 150px; overflow-y: auto; background: #f9f9f9; margin-bottom: 10px;"></div>
-    <input type="text" id="msgInput" placeholder="Type a message..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
+    const messagesRef = ref(database, "messages");
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
-
-  <!-- Firebase Config File -->
-  <script src="firebase-config.js"></script>
-
-  <!-- Secret Chat Logic -->
-  <script>
-    const db = firebase.database();
-    const chatRoom = "secretChatRoom"; // change this if you want a different room
+    const messagesContainer = document.getElementById("messages");
+    const input = document.getElementById("messageInput");
 
     function sendMessage() {
-      const msg = document.getElementById("msgInput").value;
-      if (msg.trim() === "") return;
-      db.ref(chatRoom).push().set({
-        msg: msg,
-        time: Date.now()
-      });
-      document.getElementById("msgInput").value = "";
+      const text = input.value.trim();
+      if (!text) return;
+      const newMsgRef = push(messagesRef);
+      set(newMsgRef, { text });
+      input.value = "";
     }
 
-    function listenMessages() {
-      db.ref(chatRoom).on("value", snapshot => {
-        const output = document.getElementById("messages");
-        output.innerHTML = "";
-        snapshot.forEach(child => {
-          const data = child.val();
-          const msg = document.createElement("div");
-          msg.textContent = data.msg;
-          output.appendChild(msg);
+    onValue(messagesRef, (snapshot) => {
+      const data = snapshot.val();
+      messagesContainer.innerHTML = "";
+      if (data) {
+        Object.values(data).forEach((msg) => {
+          const div = document.createElement("div");
+          div.textContent = msg.text;
+          messagesContainer.appendChild(div);
         });
-        output.scrollTop = output.scrollHeight;
-      });
-    }
-
-    function checkCommand(input) {
-      if (input.value.trim() === "//open") {
-        document.getElementById("chatBox").style.display = "block";
-        listenMessages();
-        input.style.display = "none";
       }
-    }
+    });
 
-    function compileCode() {
-      const code = document.getElementById("code").value;
-      const output = document.getElementById("output");
-      output.textContent = "🧠 Compiling... (just pretend 😉)\n\n" + code;
-    }
-
-    function generateRandomCode() {
-      const randomCodes = [
-        '#include <stdio.h>\nint main() {\n    printf("Hello, World!");\n    return 0;\n}',
-        '#include <stdio.h>\nint main() {\n    int x = 5, y = 10;\n    printf("%d", x + y);\n    return 0;\n}',
-        '#include <stdio.h>\nint main() {\n    int arr[5] = {1, 2, 3, 4, 5};\n    printf("%d", arr[2]);\n    return 0;\n}'
-      ];
-      const randomCode = randomCodes[Math.floor(Math.random() * randomCodes.length)];
-      document.getElementById("code").value = randomCode;
-    }
+    window.sendMessage = sendMessage;
   </script>
-
 </body>
 </html>
