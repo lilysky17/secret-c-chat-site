@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C Helper</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>C Helper IDE</h1>
+      <button id="panicBtn">Generate Random C Code</button>
+    </header>
+    <main>
+      <section id="compiler">
+        <textarea id="code" placeholder="Write your C code here..."></textarea>
+        <button id="runCode">Run</button>
+        <pre id="output">Output will be shown here...</pre>
+      </section>
+      <section id="chat" style="display:none;">
+        <div id="messages"></div>
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button id="sendMessage">Send</button>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
