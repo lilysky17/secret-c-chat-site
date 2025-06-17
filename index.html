@@ -15,8 +15,9 @@
     </header>
     <main>
       <section id="compiler">
-        <textarea id="code" placeholder="Write your C code here..."></textarea>
-        <button id="runCode">Run</button>
+       <textarea id="code" placeholder="Write your C code here..." rows="10" cols="50"></textarea>
+<br>
+<button id="runBtn">Run</button>
         <pre id="output">Output will be shown here...</pre>
       </section>
       <section id="chat" style="display:none;">
@@ -27,5 +28,42 @@
     </main>
   </div>
   <script type="module" src="app.js"></script>
+  <!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcGGjLZE3lk4gkPEN0EEis6rLV-hTHRqs",
+    authDomain: "secret-chat-d58c2.firebaseapp.com",
+    databaseURL: "https://secret-chat-d58c2-default-rtdb.firebaseio.com",
+    projectId: "secret-chat-d58c2",
+    storageBucket: "secret-chat-d58c2.appspot.com",
+    messagingSenderId: "1028244379630",
+    appId: "1:1028244379630:web:d059a9bfbe7f78eb9620ff"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const chatRef = ref(db, 'chat/');
+
+  const codeInput = document.getElementById("code");
+  const runBtn = document.getElementById("runBtn");
+
+  // When Run is clicked, send code as a message
+  runBtn.onclick = () => {
+    const message = codeInput.value;
+    set(chatRef, { msg: message });
+  };
+
+  // Listen for updates from the other person
+  onValue(chatRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data && data.msg) {
+      codeInput.value = data.msg;
+    }
+  });
+</script>
 </body>
 </html>
