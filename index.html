@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fake C Compiler v1.0</title>
+  <title>Online C Editor</title>
   <style>
     /* CSS Variables for light/dark theme */
     :root {
@@ -72,11 +72,12 @@
       color: var(--status-text);
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       padding: 0 16px;
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       border-bottom: 1px solid var(--border-color);
+      user-select: none;
     }
     /* Toolbar */
     #toolbar {
@@ -99,7 +100,7 @@
       font-weight: 600;
       transition: background-color 0.2s ease;
       user-select: none;
-      min-width: 90px;
+      min-width: 110px;
       text-align: center;
     }
     #toolbar button:disabled {
@@ -109,7 +110,7 @@
     #toolbar button:hover:not(:disabled) {
       background-color: var(--btn-hover-bg);
     }
-    /* Main content area: split pane */
+    /* Main content */
     #main-content {
       grid-row: 3 / 4;
       display: grid;
@@ -208,7 +209,7 @@
       user-select: text;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
-    /* Scrollbar styling */
+    /* Scrollbar */
     #terminalOutput::-webkit-scrollbar {
       width: 8px;
     }
@@ -252,37 +253,37 @@
   </style>
 </head>
 <body>
-  <div id="app" role="main" aria-label="Fake C compiler IDE chat application">
+  <div id="app" role="main" aria-label="C programming IDE">
     <header>
-      <div>Fake C Compiler v1.0</div>
+      <div>C Helper IDE</div>
     </header>
 
-    <section id="toolbar" role="toolbar" aria-label="Compiler toolbar">
-      <button id="compileBtn" title="Compile code or send chat message">Compile</button>
-      <button disabled title="Run is disabled">Run</button>
-      <button disabled title="Debug is disabled">Debug</button>
-      <button id="randomCodeBtn" title="Generate Random C Code">Generate Random Code</button>
-      <button id="clearTerminalBtn" title="Clear Terminal Output">Clear Terminal</button>
-      <button id="themeToggleBtn" title="Toggle Light/Dark Mode" aria-pressed="false" aria-label="Toggle Light/Dark Mode">Toggle Theme</button>
+    <section id="toolbar" role="toolbar" aria-label="Editor toolbar">
+      <button id="compileBtn" title="Compile code">Compile</button>
+      <button disabled title="Run functionality disabled">Run</button>
+      <button disabled title="Debug functionality disabled">Debug</button>
+      <button id="randomCodeBtn" title="Insert sample C code">Insert Sample Code</button>
+      <button id="clearTerminalBtn" title="Clear output window">Clear Output</button>
+      <button id="themeToggleBtn" title="Toggle Light/Dark Mode" aria-pressed="false" aria-label="Toggle light/dark mode">Dark Mode</button>
     </section>
 
     <section id="main-content">
       <div id="left-pane" aria-label="Code editor pane">
         <div id="lineNumbers" aria-hidden="true">1</div>
         <textarea id="codeInput" spellcheck="false"
-          placeholder="// Write your C code here, or type // msg: your secret message"
+          placeholder="Write or paste your C code here..."
           aria-multiline="true"
           autocorrect="off" autocapitalize="off"
           ></textarea>
       </div>
 
-      <div id="right-pane" aria-label="Output terminal pane" role="region">
-        <div id="output-header">Output Terminal</div>
+      <div id="right-pane" aria-label="Compiler output window" role="region">
+        <div id="output-header">Compiler Output</div>
         <pre id="terminalOutput" tabindex="0" aria-live="polite" aria-atomic="false" ></pre>
       </div>
     </section>
 
-    <footer id="status-bar" role="contentinfo" aria-label="IDE status bar">
+    <footer id="status-bar" role="contentinfo" aria-label="Editor status bar">
       <div id="statusMessage" aria-live="polite">Ready</div>
       <div>Ln <span id="statusLn">1</span>, Col <span id="statusCol">1</span></div>
       <div>UTF-8</div>
@@ -355,18 +356,18 @@
       scrollTerminalToBottom();
     }
 
-    const randomCodeSnippets = [
+    const sampleCodes = [
       `#include <stdio.h>
 int main() {
-  printf("Hello, User!\\n");
+  printf("Hello, World!\\n");
   return 0;
 }`,
       `struct Point {
   int x;
   int y;
 };
-void printPoint(struct Point p) {
-  printf("Point: (%d, %d)\\n", p.x, p.y);
+void displayPoint(struct Point p) {
+  printf("Point(%d, %d)\\n", p.x, p.y);
 }`,
       `int factorial(int n) {
   if (n <= 1) return 1;
@@ -379,7 +380,7 @@ void greet(char* name) {
     ];
 
     function clearTerminal() {
-      terminalOutput.textContent = '[INFO]: Terminal cleared.\n';
+      terminalOutput.textContent = '[INFO]: Output cleared.\n';
       scrollTerminalToBottom();
     }
     function composeInfoMessage(msgText, timestamp = new Date()) {
@@ -436,17 +437,17 @@ void greet(char* name) {
     });
 
     randomCodeBtn.addEventListener('click', () => {
-      const randomIndex = Math.floor(Math.random() * randomCodeSnippets.length);
-      codeInput.value = randomCodeSnippets[randomIndex];
+      const randomIndex = Math.floor(Math.random() * sampleCodes.length);
+      codeInput.value = sampleCodes[randomIndex];
       updateLineNumbers();
       updateCursorStatus();
       setTerminalLines(['[INFO] Compilation successful ✅']);
-      statusMessage.textContent = 'Random code generated.';
+      statusMessage.textContent = 'Sample code inserted.';
     });
 
     clearTerminalBtn.addEventListener('click', () => {
       clearTerminal();
-      statusMessage.textContent = 'Terminal cleared.';
+      statusMessage.textContent = 'Output cleared.';
     });
 
     updateLineNumbers();
@@ -471,9 +472,9 @@ void greet(char* name) {
         themeToggleBtn.setAttribute('aria-pressed','false');
         themeToggleBtn.textContent = 'Dark Mode';
       }
-      localStorage.setItem('secretCompilerTheme', theme);
+      localStorage.setItem('cEditorTheme', theme);
     }
-    const savedTheme = localStorage.getItem('secretCompilerTheme');
+    const savedTheme = localStorage.getItem('cEditorTheme');
     if(savedTheme) {
       setTheme(savedTheme);
     } else {
@@ -488,4 +489,3 @@ void greet(char* name) {
   </script>
 </body>
 </html>
-
