@@ -5,14 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fake C Compiler v1.0</title>
   <style>
+    /* CSS Variables for light/dark theme */
+    :root {
+      --bg-color: #f5f5f5;
+      --text-color: #1e1e1e;
+      --editor-bg: #ffffff;
+      --editor-text: #1e1e1e;
+      --terminal-bg: #eaeaea;
+      --terminal-text: #2d2d2d;
+      --border-color: #ccc;
+      --btn-bg: #ddd;
+      --btn-text: #333;
+      --btn-hover-bg: #ccc;
+      --status-bg: #f0f0f0;
+      --status-text: #555;
+    }
+    [data-theme="dark"] {
+      --bg-color: #1e1e1e;
+      --text-color: #d4d4d4;
+      --editor-bg: #252526;
+      --editor-text: #d4d4d4;
+      --terminal-bg: #1e1e1e;
+      --terminal-text: #d4d4d4;
+      --border-color: #3c3c3c;
+      --btn-bg: #333;
+      --btn-text: #eee;
+      --btn-hover-bg: #444;
+      --status-bg: #252525;
+      --status-text: #aaa;
+    }
+
     /* Reset & base */
     * {
       box-sizing: border-box;
     }
     body {
       margin: 0;
-      background: #121212;
-      color: #ccc;
+      background: var(--bg-color);
+      color: var(--text-color);
       font-family: 'Source Code Pro', monospace, monospace;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -24,74 +54,84 @@
     }
     #app {
       flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
+      display: grid;
       height: 100vh;
       max-width: 1200px;
       margin: 0 auto;
-      border: 1px solid #333;
-      background: #0e0e0e;
-      box-shadow: 0 0 15px rgba(0,255,0,0.15);
-      display: grid;
-      grid-template-rows: 40px 40px 1fr 24px;
+      border: 1px solid var(--border-color);
+      background: var(--editor-bg);
+      grid-template-rows: 40px 48px 1fr 28px;
       grid-template-columns: 1fr;
+      user-select: text;
+      box-shadow: 0 0 12px rgba(0,0,0,0.15);
     }
     /* Header */
     header {
       grid-row: 1 / 2;
-      background: linear-gradient(90deg, #003300, #006600);
-      color: #a0ffa0;
+      background: var(--status-bg);
+      color: var(--status-text);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px;
+      padding: 0 16px;
       font-weight: 700;
       font-size: 1.1rem;
+      border-bottom: 1px solid var(--border-color);
     }
     /* Toolbar */
     #toolbar {
       grid-row: 2 / 3;
-      background: #010;
+      background: var(--status-bg);
       display: flex;
       align-items: center;
-      padding: 4px 12px;
+      padding: 6px 16px;
       gap: 12px;
-      border-bottom: 1px solid #013301;
+      border-bottom: 1px solid var(--border-color);
     }
     #toolbar button {
-      background: #022002;
-      color: #90ee90;
-      border: 1px solid #025002;
-      padding: 6px 14px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--border-color);
+      padding: 8px 18px;
       border-radius: 6px;
       cursor: pointer;
       font-family: 'Source Code Pro', monospace;
       font-weight: 600;
       transition: background-color 0.2s ease;
+      user-select: none;
+      min-width: 90px;
+      text-align: center;
+    }
+    #toolbar button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #toolbar button:hover:not(:disabled) {
+      background-color: var(--btn-hover-bg);
     }
     /* Main content area: split pane */
     #main-content {
       grid-row: 3 / 4;
       display: grid;
       grid-template-columns: 60% 40%;
-      height: calc(100vh - 104px);
       overflow: hidden;
-      border-top: 1px solid #013301;
+      border-top: 1px solid var(--border-color);
+      height: calc(100vh - 116px);
     }
     /* Left pane - code editor */
     #left-pane {
-      background: #111;
+      background: var(--editor-bg);
       display: flex;
-      color: #90ee90;
+      color: var(--editor-text);
       position: relative;
       overflow: hidden;
-      border-right: 1px solid #013301;
+      border-right: 1px solid var(--border-color);
       font-size: 14px;
       line-height: 1.4;
     }
     #lineNumbers {
-      background: #0b0b0b;
-      color: #2aff2a;
+      background: #f0f0f0;
+      color: #888888;
       user-select: none;
       padding: 10px 6px 10px 10px;
       text-align: right;
@@ -99,14 +139,20 @@
       font-family: 'Source Code Pro', monospace;
       overflow: hidden;
       flex-shrink: 0;
-      border-right: 1px solid #025002;
+      border-right: 1px solid var(--border-color);
       min-width: 42px;
       line-height: 1.4;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    [data-theme="dark"] #lineNumbers {
+      background: #2a2a2a;
+      color: #777777;
+      border-right-color: #444444;
     }
     #codeInput {
       background: transparent;
       border: none;
-      color: #90ee90;
+      color: var(--editor-text);
       resize: none;
       font-family: 'Source Code Pro', monospace;
       font-size: 14px;
@@ -115,12 +161,21 @@
       outline: none;
       flex: 1 1 auto;
       overflow: auto;
-      caret-color: #00ff00;
+      caret-color: #0066cc;
+      transition: color 0.3s ease;
+    }
+    #codeInput::placeholder {
+      color: #999999;
+      font-style: italic;
+      transition: color 0.3s ease;
+    }
+    [data-theme="dark"] #codeInput::placeholder {
+      color: #bbbbbb;
     }
     /* Right pane - output terminal */
     #right-pane {
-      background: #020;
-      color: #59ff59;
+      background: var(--terminal-bg);
+      color: var(--terminal-text);
       font-family: 'Source Code Pro', monospace;
       font-size: 14px;
       padding: 10px 12px;
@@ -128,40 +183,71 @@
       flex-direction: column;
       height: 100%;
       overflow: hidden;
-      border-left: 1px solid #014001;
+      border-left: 1px solid var(--border-color);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     #output-header {
-      flex: 0 0 24px;
+      flex: 0 0 28px;
       padding-bottom: 6px;
       font-weight: 600;
-      border-bottom: 1px solid #014001;
+      border-bottom: 1px solid var(--border-color);
       user-select: none;
-      color: #7fff7f;
+      color: var(--text-color);
       font-size: 15px;
     }
     #terminalOutput {
       flex: 1 1 auto;
-      background: #001100;
-      color: #59ff59;
+      background: var(--terminal-bg);
+      color: var(--terminal-text);
       border-radius: 4px;
       margin-top: 6px;
       padding: 10px;
       overflow-y: auto;
       white-space: pre-wrap;
-      box-shadow: inset 0 0 12px #007f00;
+      box-shadow: none;
       user-select: text;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    /* Scrollbar styling */
+    #terminalOutput::-webkit-scrollbar {
+      width: 8px;
+    }
+    #terminalOutput::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #terminalOutput::-webkit-scrollbar-thumb {
+      background-color: #888;
+      border-radius: 4px;
     }
     /* Status bar */
     #status-bar {
       grid-row: 4 / 5;
-      background: linear-gradient(90deg, #003300, #006600);
-      color: #a0ffa0;
-      font-size: 12px;
+      background: var(--status-bg);
+      color: var(--status-text);
+      font-size: 13px;
       font-weight: 600;
-      padding: 0 12px;
-      line-height: 24px;
+      padding: 0 16px;
+      line-height: 28px;
       display: flex;
       justify-content: space-between;
+      border-top: 1px solid var(--border-color);
+      user-select: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    /* Responsive for small screens */
+    @media (max-width: 768px) {
+      #main-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        height: auto;
+      }
+      #left-pane, #right-pane {
+        height: 300px;
+        border: none;
+      }
+      #left-pane {
+        border-bottom: 1px solid var(--border-color);
+      }
     }
   </style>
 </head>
@@ -177,6 +263,7 @@
       <button disabled title="Debug is disabled">Debug</button>
       <button id="randomCodeBtn" title="Generate Random C Code">Generate Random Code</button>
       <button id="clearTerminalBtn" title="Clear Terminal Output">Clear Terminal</button>
+      <button id="themeToggleBtn" title="Toggle Light/Dark Mode" aria-pressed="false" aria-label="Toggle Light/Dark Mode">Toggle Theme</button>
     </section>
 
     <section id="main-content">
@@ -184,14 +271,14 @@
         <div id="lineNumbers" aria-hidden="true">1</div>
         <textarea id="codeInput" spellcheck="false"
           placeholder="// Write your C code here, or type // msg: your secret message"
-          aria-describedby="instruction"
           aria-multiline="true"
-          autocorrect="off" autocapitalize="off"></textarea>
+          autocorrect="off" autocapitalize="off"
+          ></textarea>
       </div>
 
       <div id="right-pane" aria-label="Output terminal pane" role="region">
         <div id="output-header">Output Terminal</div>
-        <pre id="terminalOutput" tabindex="0" aria-live="polite" aria-atomic="false"></pre>
+        <pre id="terminalOutput" tabindex="0" aria-live="polite" aria-atomic="false" ></pre>
       </div>
     </section>
 
@@ -202,26 +289,25 @@
     </footer>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK -->
   <script type="module" src="firebase-config.js"></script>
-  <script>
+
+  <script type="module">
     import { ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-    // Elements
     const codeInput = document.getElementById('codeInput');
     const lineNumbers = document.getElementById('lineNumbers');
     const terminalOutput = document.getElementById('terminalOutput');
     const compileBtn = document.getElementById('compileBtn');
     const randomCodeBtn = document.getElementById('randomCodeBtn');
     const clearTerminalBtn = document.getElementById('clearTerminalBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
     const statusMessage = document.getElementById('statusMessage');
     const statusLn = document.getElementById('statusLn');
     const statusCol = document.getElementById('statusCol');
 
-    // Firebase messages reference
     const messagesRef = ref(window.firebase.database, 'messages');
 
-    // Utility: format timestamps to hh:mm AM/PM
     function formatTimestamp(date) {
       const h = date.getHours();
       const m = date.getMinutes().toString().padStart(2, '0');
@@ -230,18 +316,15 @@
       return hour12 + ':' + m + ' ' + ampm;
     }
 
-    // Update line numbers and scroll sync
     function updateLineNumbers() {
       const val = codeInput.value;
       const lines = val.split('\n').length;
       const numbers = Array.from({length: lines}, (_, i) => i+1).join('\n');
       lineNumbers.textContent = numbers;
     }
-
     function syncScroll() {
       lineNumbers.scrollTop = codeInput.scrollTop;
     }
-
     codeInput.addEventListener('input', () => {
       updateLineNumbers();
       updateCursorStatus();
@@ -250,7 +333,6 @@
     codeInput.addEventListener('keydown', updateCursorStatus);
     codeInput.addEventListener('click', updateCursorStatus);
 
-    // Update cursor line/col in status bar
     function updateCursorStatus() {
       const pos = codeInput.selectionStart;
       const val = codeInput.value;
@@ -261,24 +343,18 @@
       statusCol.textContent = colNum;
     }
 
-    // Auto scroll terminal output to bottom
     function scrollTerminalToBottom() {
       terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
-
-    // Append a line to terminal output with optional color & auto scroll
     function appendToTerminal(text) {
       terminalOutput.textContent += text + '\n';
       scrollTerminalToBottom();
     }
-
-    // Replace terminal output with array lines
     function setTerminalLines(lines) {
       terminalOutput.textContent = lines.join('\n') + '\n';
       scrollTerminalToBottom();
     }
 
-    // Generate random C code for disguise
     const randomCodeSnippets = [
       `#include <stdio.h>
 int main() {
@@ -302,105 +378,114 @@ void greet(char* name) {
 }`,
     ];
 
-    // Clear terminal + info log function
     function clearTerminal() {
       terminalOutput.textContent = '[INFO]: Terminal cleared.\n';
       scrollTerminalToBottom();
     }
-
-    // Compose an [INFO - hh:mm AM/PM]: message log
     function composeInfoMessage(msgText, timestamp = new Date()) {
       return `[INFO - ${formatTimestamp(timestamp)}]: ${msgText}`;
     }
 
-    // On "Compile" click: parse message or simulate compile
     compileBtn.addEventListener('click', () => {
       const codeText = codeInput.value.trim();
       const msgPattern = /^\/\/ msg:\s*(.+)$/s;
       const match = codeText.match(msgPattern);
       if (match) {
-        // Extract message text
         const messageText = match[1].trim();
         if (messageText.length === 0) {
           statusMessage.textContent = 'Cannot send empty message.';
           return;
         }
-        // Push message to Firebase with timestamp
         const timestamp = Date.now();
         push(messagesRef, {
           text: messageText,
           timestamp: timestamp
         }).then(() => {
           statusMessage.textContent = 'Message sent successfully.';
-          // Reset editor with initial comment
           codeInput.value = '// msg: ';
           updateLineNumbers();
           updateCursorStatus();
-        }).catch((error) => {
+        }).catch(() => {
           statusMessage.textContent = 'Error sending message.';
         });
-        // Append confirmation to terminal locally
         appendToTerminal(composeInfoMessage('Message sent.'));
       } else {
-        // Simulate normal compilation outcome randomly
         statusMessage.textContent = 'Compiling...';
         setTimeout(() => {
           const outcomes = [
             '[INFO] Compilation successful ✅',
             '[ERROR] Compilation failed ❌'
           ];
-          const randomIndex = Math.random() < 0.7 ? 0 : 1; // Prefer success 70%
+          const randomIndex = Math.random() < 0.7 ? 0 : 1;
           setTerminalLines([outcomes[randomIndex]]);
           statusMessage.textContent = randomIndex === 0 ? 'Ready' : 'Compilation error.';
         }, 800);
       }
     });
 
-    // Listen to Firebase for real-time message updates and display messages in terminal
     onValue(messagesRef, (snapshot) => {
       const msgsObj = snapshot.val();
       if (!msgsObj) {
         terminalOutput.textContent = '';
         return;
       }
-      // Convert object values to array and sort by timestamp ascending
       const msgsArray = Object.values(msgsObj);
-      msgsArray.sort((a, b) => a.timestamp - b.timestamp);
-      // Compose display lines with timestamps
+      msgsArray.sort((a,b) => a.timestamp - b.timestamp);
       const lines = msgsArray.map(m => composeInfoMessage(m.text, new Date(m.timestamp)));
-      // Update terminal content
       setTerminalLines(lines);
     });
 
-    // "Generate Random Code" button
     randomCodeBtn.addEventListener('click', () => {
       const randomIndex = Math.floor(Math.random() * randomCodeSnippets.length);
       codeInput.value = randomCodeSnippets[randomIndex];
       updateLineNumbers();
       updateCursorStatus();
-      // Fill terminal with a random compiler output
       setTerminalLines(['[INFO] Compilation successful ✅']);
       statusMessage.textContent = 'Random code generated.';
     });
 
-    // "Clear Terminal" button
     clearTerminalBtn.addEventListener('click', () => {
       clearTerminal();
       statusMessage.textContent = 'Terminal cleared.';
     });
 
-    // Initial setup
     updateLineNumbers();
     updateCursorStatus();
     clearTerminal();
 
-    // Keyboard shortcut: Ctrl + Enter for compile
     codeInput.addEventListener('keydown', e => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
         compileBtn.click();
       }
     });
+
+    // Theme toggle logic
+    function setTheme(theme) {
+      if(theme === 'dark') {
+        document.documentElement.setAttribute('data-theme','dark');
+        themeToggleBtn.setAttribute('aria-pressed','true');
+        themeToggleBtn.textContent = 'Light Mode';
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        themeToggleBtn.setAttribute('aria-pressed','false');
+        themeToggleBtn.textContent = 'Dark Mode';
+      }
+      localStorage.setItem('secretCompilerTheme', theme);
+    }
+    const savedTheme = localStorage.getItem('secretCompilerTheme');
+    if(savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(prefersDark ? 'dark' : 'light');
+    }
+    themeToggleBtn.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      if(currentTheme === 'dark') { setTheme('light'); }
+      else { setTheme('dark'); }
+    });
   </script>
 </body>
 </html>
+
