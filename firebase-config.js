@@ -1,8 +1,8 @@
-// Import the Firebase SDK modules
+// Import Firebase SDK modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
 import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-// Your actual Firebase config
+// Firebase configuration (your project settings)
 const firebaseConfig = {
   apiKey: "AIzaSyBcGGjLZE3lk4gkPEN0EEis6rLV-hTHRqs",
   authDomain: "secret-chat-d58c2.firebaseapp.com",
@@ -17,7 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// Make these available globally so index.html can use them
+// Expose Firebase services globally for use in app.js
 window.firebase = {
   database,
   ref,
