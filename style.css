@@ -1,30 +1,245 @@
+/* CSS Variables for light/dark theme */
+:root {
+  --bg-color: #f5f5f5;
+  --text-color: #1e1e1e;
+  --editor-bg: #ffffff;
+  --editor-text: #1e1e1e;
+  --terminal-bg: #eaeaea;
+  --terminal-text: #2d2d2d;
+  --border-color: #ccc;
+  --btn-bg: #ddd;
+  --btn-text: #333;
+  --btn-hover-bg: #ccc;
+  --status-bg: #f0f0f0;
+  --status-text: #555;
+}
+[data-theme="dark"] {
+  --bg-color: #1e1e1e;
+  --text-color: #d4d4d4;
+  --editor-bg: #252526;
+  --editor-text: #d4d4d4;
+  --terminal-bg: #1e1e1e;
+  --terminal-text: #d4d4d4;
+  --border-color: #3c3c3c;
+  --btn-bg: #333;
+  --btn-text: #eee;
+  --btn-hover-bg: #444;
+  --status-bg: #252525;
+  --status-text: #aaa;
+}
 
+/* Reset & base */
+* {
+  box-sizing: border-box;
+}
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
   margin: 0;
-  padding: 0;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Source Code Pro', monospace, monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 #app {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
+  flex: 1 1 auto;
+  display: grid;
+  height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  border: 1px solid var(--border-color);
+  background: var(--editor-bg);
+  grid-template-rows: 40px 48px 1fr 28px;
+  grid-template-columns: 1fr;
+  user-select: text;
+  box-shadow: 0 0 12px rgba(0,0,0,0.15);
 }
-textarea {
-  width: 100%;
-  height: 200px;
+/* Header */
+header {
+  grid-row: 1 / 2;
+  background: var(--status-bg);
+  color: var(--status-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  border-bottom: 1px solid var(--border-color);
+  user-select: none;
 }
-#output {
-  background: #eee;
+/* Toolbar */
+#toolbar {
+  grid-row: 2 / 3;
+  background: var(--status-bg);
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+#toolbar button {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--border-color);
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Source Code Pro', monospace;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+  user-select: none;
+  min-width: 110px;
+  text-align: center;
+}
+#toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+#toolbar button:hover:not(:disabled) {
+  background-color: var(--btn-hover-bg);
+}
+/* Main content */
+#main-content {
+  grid-row: 3 / 4;
+  display: grid;
+  grid-template-columns: 60% 40%;
+  overflow: hidden;
+  border-top: 1px solid var(--border-color);
+  height: calc(100vh - 116px);
+}
+/* Left pane - code editor */
+#left-pane {
+  background: var(--editor-bg);
+  display: flex;
+  color: var(--editor-text);
+  position: relative;
+  overflow: hidden;
+  border-right: 1px solid var(--border-color);
+  font-size: 14px;
+  line-height: 1.4;
+}
+#lineNumbers {
+  background: #f0f0f0;
+  color: #888888;
+  user-select: none;
+  padding: 10px 6px 10px 10px;
+  text-align: right;
+  font-weight: 600;
+  font-family: 'Source Code Pro', monospace;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-color);
+  min-width: 42px;
+  line-height: 1.4;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+[data-theme="dark"] #lineNumbers {
+  background: #2a2a2a;
+  color: #777777;
+  border-right-color: #444444;
+}
+#codeInput {
+  background: transparent;
+  border: none;
+  color: var(--editor-text);
+  resize: none;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 10px 12px;
+  outline: none;
+  flex: 1 1 auto;
+  overflow: auto;
+  caret-color: #0066cc;
+  transition: color 0.3s ease;
+}
+#codeInput::placeholder {
+  color: #999999;
+  font-style: italic;
+  transition: color 0.3s ease;
+}
+[data-theme="dark"] #codeInput::placeholder {
+  color: #bbbbbb;
+}
+/* Right pane - output terminal */
+#right-pane {
+  background: var(--terminal-bg);
+  color: var(--terminal-text);
+  font-family: 'Source Code Pro', monospace;
+  font-size: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-left: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+#output-header {
+  flex: 0 0 28px;
+  padding-bottom: 6px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  user-select: none;
+  color: var(--text-color);
+  font-size: 15px;
+}
+#terminalOutput {
+  flex: 1 1 auto;
+  background: var(--terminal-bg);
+  color: var(--terminal-text);
+  border-radius: 4px;
+  margin-top: 6px;
   padding: 10px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  box-shadow: none;
+  user-select: text;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
-#messages {
-  background: #222;
-  color: white;
-  padding: 10px;
-  height: 200px;
-  overflow-y: scroll;
+/* Scrollbar */
+#terminalOutput::-webkit-scrollbar {
+  width: 8px;
 }
-input[type="text"] {
-  width: 80%;
+#terminalOutput::-webkit-scrollbar-track {
+  background: transparent;
+}
+#terminalOutput::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 4px;
+}
+/* Status bar */
+#status-bar {
+  grid-row: 4 / 5;
+  background: var(--status-bg);
+  color: var(--status-text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 16px;
+  line-height: 28px;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-color);
+  user-select: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+/* Responsive for small screens */
+@media (max-width: 768px) {
+  #main-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: auto;
+  }
+  #left-pane, #right-pane {
+    height: 300px;
+    border: none;
+  }
+  #left-pane {
+    border-bottom: 1px solid var(--border-color);
+  }
 }
