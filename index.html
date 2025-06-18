@@ -2,89 +2,405 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>C Practice Tool</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fake C Compiler v1.0</title>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #121212;
+      color: #ccc;
+      font-family: 'Source Code Pro', monospace, monospace;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      user-select: none;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #app {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 1200px;
+      margin: 0 auto;
+      border: 1px solid #333;
+      background: #0e0e0e;
+      box-shadow: 0 0 15px rgba(0,255,0,0.15);
+      display: grid;
+      grid-template-rows: 40px 40px 1fr 24px;
+      grid-template-columns: 1fr;
+    }
+    /* Header */
+    header {
+      grid-row: 1 / 2;
+      background: linear-gradient(90deg, #003300, #006600);
+      color: #a0ffa0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    /* Toolbar */
+    #toolbar {
+      grid-row: 2 / 3;
+      background: #010;
+      display: flex;
+      align-items: center;
+      padding: 4px 12px;
+      gap: 12px;
+      border-bottom: 1px solid #013301;
+    }
+    #toolbar button {
+      background: #022002;
+      color: #90ee90;
+      border: 1px solid #025002;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Source Code Pro', monospace;
+      font-weight: 600;
+      transition: background-color 0.2s ease;
+    }
+    /* Main content area: split pane */
+    #main-content {
+      grid-row: 3 / 4;
+      display: grid;
+      grid-template-columns: 60% 40%;
+      height: calc(100vh - 104px);
+      overflow: hidden;
+      border-top: 1px solid #013301;
+    }
+    /* Left pane - code editor */
+    #left-pane {
+      background: #111;
+      display: flex;
+      color: #90ee90;
+      position: relative;
+      overflow: hidden;
+      border-right: 1px solid #013301;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    #lineNumbers {
+      background: #0b0b0b;
+      color: #2aff2a;
+      user-select: none;
+      padding: 10px 6px 10px 10px;
+      text-align: right;
+      font-weight: 600;
+      font-family: 'Source Code Pro', monospace;
+      overflow: hidden;
+      flex-shrink: 0;
+      border-right: 1px solid #025002;
+      min-width: 42px;
+      line-height: 1.4;
+    }
+    #codeInput {
+      background: transparent;
+      border: none;
+      color: #90ee90;
+      resize: none;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 14px;
+      line-height: 1.4;
+      padding: 10px 12px;
+      outline: none;
+      flex: 1 1 auto;
+      overflow: auto;
+      caret-color: #00ff00;
+    }
+    /* Right pane - output terminal */
+    #right-pane {
+      background: #020;
+      color: #59ff59;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 14px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      border-left: 1px solid #014001;
+    }
+    #output-header {
+      flex: 0 0 24px;
+      padding-bottom: 6px;
+      font-weight: 600;
+      border-bottom: 1px solid #014001;
+      user-select: none;
+      color: #7fff7f;
+      font-size: 15px;
+    }
+    #terminalOutput {
+      flex: 1 1 auto;
+      background: #001100;
+      color: #59ff59;
+      border-radius: 4px;
+      margin-top: 6px;
+      padding: 10px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      box-shadow: inset 0 0 12px #007f00;
+      user-select: text;
+    }
+    /* Status bar */
+    #status-bar {
+      grid-row: 4 / 5;
+      background: linear-gradient(90deg, #003300, #006600);
+      color: #a0ffa0;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 0 12px;
+      line-height: 24px;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
 </head>
 <body>
-  <h1 style="text-align: center;">C Practice Compiler</h1>
+  <div id="app" role="main" aria-label="Fake C compiler IDE chat application">
+    <header>
+      <div>Fake C Compiler v1.0</div>
+    </header>
 
-  <div id="main-container">
-    <textarea id="code" placeholder="Write your C code here..."></textarea>
-    <button onclick="generateRandomCode()">Generate Random C Code</button>
+    <section id="toolbar" role="toolbar" aria-label="Compiler toolbar">
+      <button id="compileBtn" title="Compile code or send chat message">Compile</button>
+      <button disabled title="Run is disabled">Run</button>
+      <button disabled title="Debug is disabled">Debug</button>
+      <button id="randomCodeBtn" title="Generate Random C Code">Generate Random Code</button>
+      <button id="clearTerminalBtn" title="Clear Terminal Output">Clear Terminal</button>
+    </section>
+
+    <section id="main-content">
+      <div id="left-pane" aria-label="Code editor pane">
+        <div id="lineNumbers" aria-hidden="true">1</div>
+        <textarea id="codeInput" spellcheck="false"
+          placeholder="// Write your C code here, or type // msg: your secret message"
+          aria-describedby="instruction"
+          aria-multiline="true"
+          autocorrect="off" autocapitalize="off"></textarea>
+      </div>
+
+      <div id="right-pane" aria-label="Output terminal pane" role="region">
+        <div id="output-header">Output Terminal</div>
+        <pre id="terminalOutput" tabindex="0" aria-live="polite" aria-atomic="false"></pre>
+      </div>
+    </section>
+
+    <footer id="status-bar" role="contentinfo" aria-label="IDE status bar">
+      <div id="statusMessage" aria-live="polite">Ready</div>
+      <div>Ln <span id="statusLn">1</span>, Col <span id="statusCol">1</span></div>
+      <div>UTF-8</div>
+    </footer>
   </div>
 
-  <div id="chat-container" style="display: none;">
-    <h3>Output Console</h3>
-    <div id="chat-messages"></div>
-    <input id="chat-input" type="text" placeholder="Type C input here..." onkeydown="handleKey(event)" />
-    <button onclick="sendMessage()">Run</button>
-  </div>
-
-  <!-- Firebase config file -->
+  <!-- Firebase SDKs -->
   <script type="module" src="firebase-config.js"></script>
-
-  <!-- Main JS -->
   <script>
-    const codeInput = document.getElementById("code");
-    const chatContainer = document.getElementById("chat-container");
-    const chatMessages = document.getElementById("chat-messages");
-    const chatInput = document.getElementById("chat-input");
+    import { ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-    const secretCode = "/open";
+    // Elements
+    const codeInput = document.getElementById('codeInput');
+    const lineNumbers = document.getElementById('lineNumbers');
+    const terminalOutput = document.getElementById('terminalOutput');
+    const compileBtn = document.getElementById('compileBtn');
+    const randomCodeBtn = document.getElementById('randomCodeBtn');
+    const clearTerminalBtn = document.getElementById('clearTerminalBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const statusLn = document.getElementById('statusLn');
+    const statusCol = document.getElementById('statusCol');
 
-    function handleKey(event) {
-      if (event.key === "Enter") {
-        if (chatInput.value.trim() === secretCode) {
-          chatContainer.style.display = "block";
-          chatInput.value = "";
-          chatInput.placeholder = "Write C commands...";
+    // Firebase messages reference
+    const messagesRef = ref(window.firebase.database, 'messages');
+
+    // Utility: format timestamps to hh:mm AM/PM
+    function formatTimestamp(date) {
+      const h = date.getHours();
+      const m = date.getMinutes().toString().padStart(2, '0');
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hour12 = h % 12 || 12;
+      return hour12 + ':' + m + ' ' + ampm;
+    }
+
+    // Update line numbers and scroll sync
+    function updateLineNumbers() {
+      const val = codeInput.value;
+      const lines = val.split('\n').length;
+      const numbers = Array.from({length: lines}, (_, i) => i+1).join('\n');
+      lineNumbers.textContent = numbers;
+    }
+
+    function syncScroll() {
+      lineNumbers.scrollTop = codeInput.scrollTop;
+    }
+
+    codeInput.addEventListener('input', () => {
+      updateLineNumbers();
+      updateCursorStatus();
+    });
+    codeInput.addEventListener('scroll', syncScroll);
+    codeInput.addEventListener('keydown', updateCursorStatus);
+    codeInput.addEventListener('click', updateCursorStatus);
+
+    // Update cursor line/col in status bar
+    function updateCursorStatus() {
+      const pos = codeInput.selectionStart;
+      const val = codeInput.value;
+      const lines = val.substr(0, pos).split('\n');
+      const lineNum = lines.length;
+      const colNum = lines[lines.length - 1].length + 1;
+      statusLn.textContent = lineNum;
+      statusCol.textContent = colNum;
+    }
+
+    // Auto scroll terminal output to bottom
+    function scrollTerminalToBottom() {
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+
+    // Append a line to terminal output with optional color & auto scroll
+    function appendToTerminal(text) {
+      terminalOutput.textContent += text + '\n';
+      scrollTerminalToBottom();
+    }
+
+    // Replace terminal output with array lines
+    function setTerminalLines(lines) {
+      terminalOutput.textContent = lines.join('\n') + '\n';
+      scrollTerminalToBottom();
+    }
+
+    // Generate random C code for disguise
+    const randomCodeSnippets = [
+      `#include <stdio.h>
+int main() {
+  printf("Hello, User!\\n");
+  return 0;
+}`,
+      `struct Point {
+  int x;
+  int y;
+};
+void printPoint(struct Point p) {
+  printf("Point: (%d, %d)\\n", p.x, p.y);
+}`,
+      `int factorial(int n) {
+  if (n <= 1) return 1;
+  else return n * factorial(n - 1);
+}`,
+      `#include <string.h>
+void greet(char* name) {
+  printf("Hello, %s!\\n", name);
+}`,
+    ];
+
+    // Clear terminal + info log function
+    function clearTerminal() {
+      terminalOutput.textContent = '[INFO]: Terminal cleared.\n';
+      scrollTerminalToBottom();
+    }
+
+    // Compose an [INFO - hh:mm AM/PM]: message log
+    function composeInfoMessage(msgText, timestamp = new Date()) {
+      return `[INFO - ${formatTimestamp(timestamp)}]: ${msgText}`;
+    }
+
+    // On "Compile" click: parse message or simulate compile
+    compileBtn.addEventListener('click', () => {
+      const codeText = codeInput.value.trim();
+      const msgPattern = /^\/\/ msg:\s*(.+)$/s;
+      const match = codeText.match(msgPattern);
+      if (match) {
+        // Extract message text
+        const messageText = match[1].trim();
+        if (messageText.length === 0) {
+          statusMessage.textContent = 'Cannot send empty message.';
+          return;
         }
+        // Push message to Firebase with timestamp
+        const timestamp = Date.now();
+        push(messagesRef, {
+          text: messageText,
+          timestamp: timestamp
+        }).then(() => {
+          statusMessage.textContent = 'Message sent successfully.';
+          // Reset editor with initial comment
+          codeInput.value = '// msg: ';
+          updateLineNumbers();
+          updateCursorStatus();
+        }).catch((error) => {
+          statusMessage.textContent = 'Error sending message.';
+        });
+        // Append confirmation to terminal locally
+        appendToTerminal(composeInfoMessage('Message sent.'));
+      } else {
+        // Simulate normal compilation outcome randomly
+        statusMessage.textContent = 'Compiling...';
+        setTimeout(() => {
+          const outcomes = [
+            '[INFO] Compilation successful ✅',
+            '[ERROR] Compilation failed ❌'
+          ];
+          const randomIndex = Math.random() < 0.7 ? 0 : 1; // Prefer success 70%
+          setTerminalLines([outcomes[randomIndex]]);
+          statusMessage.textContent = randomIndex === 0 ? 'Ready' : 'Compilation error.';
+        }, 800);
       }
-    }
-
-    function generateRandomCode() {
-      const samples = [
-        "#include<stdio.h>\nint main() {\n  printf(\"Hello, world!\\n\");\n  return 0;\n}",
-        "#include<stdio.h>\nint main() {\n  int a=5,b=10;\n  printf(\"Sum: %d\\n\",a+b);\n  return 0;\n}",
-        "#include<stdio.h>\nint main() {\n  for(int i=0;i<5;i++) printf(\"%d \",i);\n  return 0;\n}"
-      ];
-      document.getElementById("code").value = samples[Math.floor(Math.random() * samples.length)];
-    }
-
-    // Firebase realtime chat logic
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js";
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBcGGjLZE3lk4gkPEN0EEis6rLV-hTHRqs",
-      authDomain: "secret-chat-d58c2.firebaseapp.com",
-      databaseURL: "https://secret-chat-d58c2-default-rtdb.firebaseio.com",
-      projectId: "secret-chat-d58c2",
-      storageBucket: "secret-chat-d58c2.appspot.com",
-      messagingSenderId: "1028244379630",
-      appId: "1:1028244379630:web:d059a9bfbe7f78eb9620ff"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const msgRef = ref(db, "messages");
-
-    onChildAdded(msgRef, (data) => {
-      const msg = data.val();
-      const msgElem = document.createElement("div");
-      msgElem.textContent = msg.text;
-      chatMessages.appendChild(msgElem);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
     });
 
-    function sendMessage() {
-      const text = chatInput.value.trim();
-      if (text !== "") {
-        push(msgRef, { text });
-        chatInput.value = "";
+    // Listen to Firebase for real-time message updates and display messages in terminal
+    onValue(messagesRef, (snapshot) => {
+      const msgsObj = snapshot.val();
+      if (!msgsObj) {
+        terminalOutput.textContent = '';
+        return;
       }
-    }
+      // Convert object values to array and sort by timestamp ascending
+      const msgsArray = Object.values(msgsObj);
+      msgsArray.sort((a, b) => a.timestamp - b.timestamp);
+      // Compose display lines with timestamps
+      const lines = msgsArray.map(m => composeInfoMessage(m.text, new Date(m.timestamp)));
+      // Update terminal content
+      setTerminalLines(lines);
+    });
+
+    // "Generate Random Code" button
+    randomCodeBtn.addEventListener('click', () => {
+      const randomIndex = Math.floor(Math.random() * randomCodeSnippets.length);
+      codeInput.value = randomCodeSnippets[randomIndex];
+      updateLineNumbers();
+      updateCursorStatus();
+      // Fill terminal with a random compiler output
+      setTerminalLines(['[INFO] Compilation successful ✅']);
+      statusMessage.textContent = 'Random code generated.';
+    });
+
+    // "Clear Terminal" button
+    clearTerminalBtn.addEventListener('click', () => {
+      clearTerminal();
+      statusMessage.textContent = 'Terminal cleared.';
+    });
+
+    // Initial setup
+    updateLineNumbers();
+    updateCursorStatus();
+    clearTerminal();
+
+    // Keyboard shortcut: Ctrl + Enter for compile
+    codeInput.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        compileBtn.click();
+      }
+    });
   </script>
 </body>
 </html>
